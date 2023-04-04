@@ -13,4 +13,8 @@ export class CatService {
   findAll(): Observable<Cat[]> {
     return of(this.cats);
   }
+
+  findOne(id: number): Observable<Cat> {
+    return of(this.cats[id]);
+  }
 }
