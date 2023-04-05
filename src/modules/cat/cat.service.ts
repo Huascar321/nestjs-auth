@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Cat } from '../../core/models/cat.model';
+import { Cat } from '../../core/models/cat/cat.model';
 import { Observable, of } from 'rxjs';
 
 @Injectable()
