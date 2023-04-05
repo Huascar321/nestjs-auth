@@ -6,8 +6,9 @@ import { logger } from './core/middlewares/logger.middleware';
 import { CatController } from './modules/cat/cat.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './core/guards/auth.guard';
+import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
 
 @Module({
   imports: [CatModule, AuthModule, UserModule],
@@ -17,6 +18,10 @@ import { AuthGuard } from './core/guards/auth.guard';
     {
       provide: APP_GUARD,
       useClass: AuthGuard
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor
     }
   ]
 })
