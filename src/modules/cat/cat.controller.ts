@@ -9,10 +9,10 @@ import {
   UsePipes
 } from '@nestjs/common';
 import { CatService } from './cat.service';
-import { CreateCatDto, createCatSchema } from '../../core/models/cat/cat.dto';
+import { CreateCatDto, createCatSchema } from '../../shared/models/cat/cat.dto';
 import { Observable } from 'rxjs';
-import { Cat } from '../../core/models/cat/cat.model';
 import { JoiValidatorPipe } from '../../core/pipes/validators/joi-validator.pipe';
+import { Cat } from '@prisma/client';
 
 @Controller('cats')
 export class CatController {
@@ -26,7 +26,7 @@ export class CatController {
 
   @Get()
   findAll(): Observable<Cat[]> {
-    return this.catService.findAll();
+    return this.catService.findAll({});
   }
 
   @Get(':id')
@@ -37,6 +37,6 @@ export class CatController {
     )
     id: number
   ) {
-    return this.catService.findOne(id);
+    return this.catService.findOne({ id });
   }
 }

@@ -11,6 +11,7 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration, { getEnvFilePath } from './core/config/configuration';
+import { SharedModule } from './shared/shared.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -32,7 +33,8 @@ import * as Joi from 'joi';
       envFilePath: getEnvFilePath(),
       isGlobal: true,
       load: [configuration]
-    })
+    }),
+    SharedModule
   ],
   controllers: [AppController],
   providers: [

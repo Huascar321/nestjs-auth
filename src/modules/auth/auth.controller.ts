@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Observable } from 'rxjs';
-import { signInDto, signInSchema } from '../../core/models/auth/auth.dto';
+import { signInDto, signInSchema } from '../../shared/models/auth/auth.dto';
 import { JoiValidatorPipe } from '../../core/pipes/validators/joi-validator.pipe';
 import { Public } from '../../core/decorators/public.decorator';
 
