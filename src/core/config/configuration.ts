@@ -17,5 +17,6 @@ export function getEnvFilePath(): string {
   }
 }
 export default () => ({
-  port: parseInt(process.env.PORT!, 10) || 3000
+  port: parseInt(process.env.PORT!, 10) || 3000,
+  accessTokenTime: process.env.ACCESS_TOKEN_TIME
 });

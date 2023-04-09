@@ -13,6 +13,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration, { getEnvFilePath } from './core/config/configuration';
 import { SharedModule } from './shared/shared.module';
 import * as Joi from 'joi';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstant } from './shared/constants/jwt.constant';
 
 @Module({
   imports: [
@@ -34,7 +36,10 @@ import * as Joi from 'joi';
       isGlobal: true,
       load: [configuration]
     }),
-    SharedModule
+    SharedModule,
+    JwtModule.register({
+      secret: jwtConstant.secret
+    })
   ],
   controllers: [AppController],
   providers: [

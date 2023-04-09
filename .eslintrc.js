@@ -3,7 +3,7 @@ module.exports = {
   parserOptions: {
     project: 'tsconfig.json',
     tsconfigRootDir: __dirname,
-    sourceType: 'module',
+    sourceType: 'module'
   },
   plugins: ['@typescript-eslint/eslint-plugin'],
   extends: [
@@ -13,7 +13,7 @@ module.exports = {
   root: true,
   env: {
     node: true,
-    jest: true,
+    jest: true
   },
   ignorePatterns: ['.eslintrc.js'],
   rules: {
@@ -22,7 +22,7 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
-    'prettier/prettier': ['error', { 'endOfLine': 'auto' }],
-    "comma-spacing": ["error", { "before": false, "after": true }]
-  },
+    'prettier/prettier': ['error', { endOfLine: 'auto' }],
+    'comma-spacing': ['error', { before: false, after: true }]
+  }
 };

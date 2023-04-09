@@ -7,6 +7,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+generator joi {
+  provider = "prisma-joi-generator"
+}
+
+generator nestjsDto {
+  provider                        = "prisma-generator-nestjs"
+  output                          = "../src/shared/models"
+  outputToNestJsResourceStructure = "true"
+  exportRelationModifierClasses   = "true"
+  createDtoPrefix                 = "Create"
+  updateDtoPrefix                 = "Update"
+  dtoSuffix                       = "Dto"
+  entityPrefix                    = ""
+  entitySuffix                    = ""
+  fileNamingStyle                 = "camel"
+  decimalAsNumber                 = "false"
+  mode                            = "openapi"
+  fileConfig                      = "nest-dto.js"
+  importPath                      = "@prisma/client"
+}
+
 model User {
   id       Int    @id @default(autoincrement())
   username String @unique

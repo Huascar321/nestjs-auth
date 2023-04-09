@@ -10,9 +10,11 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Observable } from 'rxjs';
-import { signInDto, signInSchema } from '../../shared/models/auth/auth.dto';
 import { JoiValidatorPipe } from '../../core/pipes/validators/joi-validator.pipe';
 import { Public } from '../../core/decorators/public.decorator';
+import { UserCreateSchema } from '../../../prisma/generated/schemas';
+import { CreateUserDto } from '../../shared/models/user';
+import { User } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -21,9 +23,19 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Public()
   @Post('login')
-  @UsePipes(new JoiValidatorPipe(signInSchema))
-  signIn(@Body() signInDto: signInDto): Observable<any> {
+  @UsePipes(new JoiValidatorPipe(UserCreateSchema))
+  signIn(
+    @Body() signInDto: CreateUserDto
+  ): Observable<{ access_token: string }> {
     return this.authService.signIn(signInDto.username, signInDto.password);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  @Post('register')
+  @UsePipes(new JoiValidatorPipe(UserCreateSchema))
+  signUp(@Body() signUpDto: CreateUserDto): Observable<Omit<User, 'password'>> {
+    return this.authService.signUp(signUpDto.username, signUpDto.password);
   }
 
   @Get('profile')

@@ -4,14 +4,27 @@ import { AuthService } from './auth.service';
 import { UserModule } from '../user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstant } from '../../shared/constants/jwt.constant';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import configuration from '../../core/config/configuration';
 
 @Module({
   imports: [
     UserModule,
-    JwtModule.register({
+    /*JwtModule.register({
       global: true,
       secret: jwtConstant.secret,
-      signOptions: { expiresIn: '60s' }
+      signOptions: { expiresIn: 'INSERTAr accessTokenTime AQUí' }
+    })*/
+    ConfigModule.forRoot({
+      load: [configuration]
+    }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: jwtConstant.secret,
+        signOptions: { expiresIn: configService.get<string>('accessTokenTime') }
+      }),
+      inject: [ConfigService]
     })
   ],
   controllers: [AuthController],

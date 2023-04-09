@@ -1,24 +1,32 @@
 import { Injectable } from '@nestjs/common';
-import { Observable, of } from 'rxjs';
-
-export type User = any;
+import { Observable } from 'rxjs';
+import { Prisma, User } from '@prisma/client';
+import { fromPromise } from 'rxjs/internal/observable/innerFrom';
+import { PrismaService } from '../../shared/services/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  private readonly users = [
-    {
-      userId: 1,
-      username: 'john',
-      password: '12345'
-    },
-    {
-      userId: 2,
-      username: 'maria',
-      password: '12345'
-    }
-  ];
+  constructor(private db: PrismaService) {}
 
-  findOne(username: string): Observable<User | undefined> {
-    return of(this.users.find((u) => u.username === username));
+  findOne(
+    whereUniqueInput: Prisma.UserWhereUniqueInput
+  ): Observable<User | null> {
+    return fromPromise(
+      this.db.user.findUnique({
+        where: whereUniqueInput
+      })
+    );
+  }
+
+  create(data: Prisma.UserCreateInput): Observable<Omit<User, 'password'>> {
+    return fromPromise(
+      this.db.user.create({
+        data,
+        select: {
+          id: true,
+          username: true
+        }
+      })
+    );
   }
 }

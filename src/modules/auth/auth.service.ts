@@ -1,7 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { map, Observable } from 'rxjs';
+import { Observable, of, switchMap } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { User } from '@prisma/client';
+import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 
 @Injectable()
 export class AuthService {
@@ -10,14 +13,30 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  signIn(username: string, pass: string): Observable<any> {
-    return this.userService.findOne(username).pipe(
-      map(async (user) => {
-        if (user?.password !== pass) throw new UnauthorizedException();
-        const payload = { username: user.username, sub: user.userId };
-        return {
-          access_token: await this.jwtService.signAsync(payload)
-        };
+  signIn(username: string, pass: string): Observable<{ access_token: string }> {
+    return this.userService.findOne({ username }).pipe(
+      switchMap((foundUser) => {
+        if (!foundUser) throw new BadRequestException('User not found');
+        return fromPromise(bcrypt.compare(pass, foundUser.password)).pipe(
+          switchMap((isMatch) => {
+            if (!isMatch) throw new BadRequestException('Incorrect password');
+            const payload = { username };
+            return fromPromise(this.jwtService.signAsync(payload)).pipe(
+              switchMap((access_token) => of({ access_token }))
+            );
+          })
+        );
+      })
+    );
+  }
+
+  signUp(
+    username: string,
+    password: string
+  ): Observable<Omit<User, 'password'>> {
+    return fromPromise(bcrypt.hash(password, 10)).pipe(
+      switchMap((hashedPassword) => {
+        return this.userService.create({ username, password: hashedPassword });
       })
     );
   }
