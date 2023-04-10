@@ -10,11 +10,6 @@ import configuration from '../../core/config/configuration';
 @Module({
   imports: [
     UserModule,
-    /*JwtModule.register({
-      global: true,
-      secret: jwtConstant.secret,
-      signOptions: { expiresIn: 'INSERTAr accessTokenTime AQUí' }
-    })*/
     ConfigModule.forRoot({
       load: [configuration]
     }),

@@ -15,7 +15,9 @@ import { Public } from '../../core/decorators/public.decorator';
 import { UserCreateSchema } from '../../../prisma/generated/schemas';
 import { CreateUserDto } from '../../shared/models/user';
 import { User } from '@prisma/client';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}

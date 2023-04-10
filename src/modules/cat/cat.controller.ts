@@ -11,10 +11,11 @@ import {
 import { CatService } from './cat.service';
 import { Observable } from 'rxjs';
 import { JoiValidatorPipe } from '../../core/pipes/validators/joi-validator.pipe';
-import { Cat } from '@prisma/client';
 import { CatCreateSchema } from '../../../prisma/generated/schemas';
-import { CreateCatDto } from '../../shared/models/cat';
+import { Cat, CreateCatDto } from '../../shared/models/cat';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('cats')
 @Controller('cats')
 export class CatController {
   constructor(private catService: CatService) {}
@@ -26,11 +27,13 @@ export class CatController {
   }
 
   @Get()
+  @ApiOkResponse({ type: [Cat] })
   findAll(): Observable<Cat[]> {
     return this.catService.findAll({});
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: Cat })
   findOne(
     @Param(
       'id',
