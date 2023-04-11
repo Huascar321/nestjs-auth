@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Post,
   Request,
+  Res,
   UsePipes
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -16,6 +17,8 @@ import { UserCreateSchema } from '../../../prisma/generated/schemas';
 import { CreateUserDto } from '../../shared/models/user';
 import { User } from '@prisma/client';
 import { ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import { Jwt } from '../../shared/models/auth/jwt.model';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -27,9 +30,10 @@ export class AuthController {
   @Post('login')
   @UsePipes(new JoiValidatorPipe(UserCreateSchema))
   signIn(
-    @Body() signInDto: CreateUserDto
-  ): Observable<{ access_token: string }> {
-    return this.authService.signIn(signInDto.username, signInDto.password);
+    @Body() signInDto: CreateUserDto,
+    @Res({ passthrough: true }) res: Response
+  ): Observable<Omit<Jwt, 'refresh_token'>> {
+    return this.authService.signIn(signInDto.username, signInDto.password, res);
   }
 
   @HttpCode(HttpStatus.OK)

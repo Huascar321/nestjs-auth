@@ -38,7 +38,6 @@ export class CatService {
   }
 
   create(data: Prisma.CatCreateInput): Observable<Cat> {
-    console.log('data: ', data);
     return fromPromise(
       this.db.cat.create({
         data

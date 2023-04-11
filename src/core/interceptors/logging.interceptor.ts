@@ -12,7 +12,6 @@ export class LoggingInterceptor implements NestInterceptor {
   constructor(private readonly reflector: Reflector) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    console.log('Before...');
     const controllerClass = context.getClass();
     const controllerPath = this.reflector.get<string>('path', controllerClass);
     const request = context.switchToHttp().getRequest();

@@ -1,9 +1,7 @@
-import { Logger, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CatModule } from './modules/cat/cat.module';
-import { logger } from './core/middlewares/logger.middleware';
-import { CatController } from './modules/cat/cat.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -54,7 +52,7 @@ import { jwtConstant } from './shared/constants/jwt.constant';
     }
   ]
 })
-export class AppModule implements NestModule {
+export class AppModule {
   private readonly logger = new Logger(AppModule.name);
 
   constructor(private configService: ConfigService) {
@@ -62,9 +60,5 @@ export class AppModule implements NestModule {
     this.logger.log(
       `\x1b[34mApplication running in \x1b[96m${nodeEnv}\x1b[34m environment\x1b[0m`
     );
-  }
-
-  configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(logger).forRoutes(CatController);
   }
 }
