@@ -15,10 +15,10 @@ import { JoiValidatorPipe } from '../../core/pipes/validators/joi-validator.pipe
 import { Public } from '../../core/decorators/public.decorator';
 import { UserCreateSchema } from '../../../prisma/generated/schemas';
 import { CreateUserDto } from '../../shared/models/user';
-import { User } from '@prisma/client';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Jwt } from '../../shared/models/auth/jwt.model';
+import { User } from '@prisma/client';
 
 @ApiTags('auth')
 @Controller('auth')

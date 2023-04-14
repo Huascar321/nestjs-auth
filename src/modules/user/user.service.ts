@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Observable } from 'rxjs';
 import { Prisma, User } from '@prisma/client';
+import { Observable } from 'rxjs';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { PrismaService } from '../../shared/services/prisma/prisma.service';
 

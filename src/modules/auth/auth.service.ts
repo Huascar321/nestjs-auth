@@ -1,14 +1,19 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException
+} from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { forkJoin, map, Observable, switchMap } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { User } from '@prisma/client';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { Jwt } from '../../shared/models/auth/jwt.model';
 import { v4 as uuid } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { User } from '@prisma/client';
+import { parseTimeToSeconds } from '../../core/helper/parser.helper';
 
 @Injectable()
 export class AuthService {
@@ -31,6 +36,7 @@ export class AuthService {
             if (!isMatch) throw new BadRequestException('Incorrect password');
             return this.generateTokens(username).pipe(
               map((tokens) => {
+                console.log('tokens: ', tokens);
                 this.setRefreshTokenCookie(res, tokens.refresh_token);
                 delete (tokens as any).refresh_token;
                 return tokens;
@@ -73,7 +79,7 @@ export class AuthService {
         return {
           access_token: payload.access_token,
           access_token_expires_in:
-            this.configService.get<string>('ACCESS_TOKEN_TIME')!
+            this.configService.get<string>('accessTokenTime')!
         };
       })
     );
@@ -86,7 +92,7 @@ export class AuthService {
         this.jwtService.signAsync(
           { username, tokenId: uuid() },
           {
-            expiresIn: this.configService.get<string>('REFRESH_TOKEN_TIME')
+            expiresIn: this.configService.get<string>('refreshTokenTime')
           }
         )
       )
@@ -95,16 +101,20 @@ export class AuthService {
         access_token: accessToken,
         refresh_token: refreshToken,
         access_token_expires_in:
-          this.configService.get<string>('ACCESS_TOKEN_TIME')!
+          this.configService.get<string>('accessTokenTime')!
       }))
     );
   }
 
   setRefreshTokenCookie(res: Response, refreshToken: string): void {
+    const refreshTokenTime = this.configService.get<string>('refreshTokenTime');
+    if (!refreshTokenTime) {
+      throw new InternalServerErrorException('Refresh token time not defined');
+    }
+    console.log('maxAge: ', parseTimeToSeconds(refreshTokenTime) * 1000);
     res.cookie('RefreshToken', refreshToken, {
       httpOnly: true,
-      maxAge:
-        parseInt(this.configService.get<string>('REFRESH_TOKEN_TIME')!) * 1000,
+      maxAge: parseTimeToSeconds(refreshTokenTime) * 1000,
       sameSite: 'strict'
     });
   }

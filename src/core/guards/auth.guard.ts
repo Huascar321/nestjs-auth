@@ -35,7 +35,6 @@ export class AuthGuard implements CanActivate {
       return true;
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
-        console.log('refreshTokenActivate');
         const refreshTokenPayload = await this.jwtService.verifyAsync(
           refreshToken
         );
