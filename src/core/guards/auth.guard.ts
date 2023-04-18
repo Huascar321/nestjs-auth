@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstant } from '../../shared/constants/jwt.constant';
 import { Reflector } from '@nestjs/core';
@@ -12,43 +12,59 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { AuthService } from '../../modules/auth/auth.service';
 import { Jwt } from '../../shared/models/auth/jwt.model';
 import { lastValueFrom } from 'rxjs';
+import { CustomLoggerService } from '../services/custom-logger/custom-logger.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
+    private authService: AuthService,
+    private devLogger: CustomLoggerService,
     private jwtService: JwtService,
-    private reflector: Reflector,
-    private authService: AuthService
+    private reflector: Reflector
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (this.isPublic(context)) return true;
+    const response = context.switchToHttp().getResponse();
     const request = context.switchToHttp().getRequest();
     const accessToken = this.extractAccessTokenFromHeader(request);
     const refreshToken = this.extractRefreshTokenFromCookie(request);
-    if (!accessToken || !refreshToken) throw new UnauthorizedException();
+    if (!refreshToken) {
+      this.devLogger.log(`Invalid or expired Refresh Token`);
+      throw new UnauthorizedException();
+    }
 
     try {
-      request['user'] = await this.jwtService.verifyAsync(accessToken, {
+      request['user'] = await this.jwtService.verifyAsync(accessToken!, {
         secret: jwtConstant.secret
       });
+      response.set('Cache-Control', 'no-store');
       return true;
     } catch (error) {
-      if (error.name === 'TokenExpiredError') {
+      if (
+        error.name === 'TokenExpiredError' ||
+        error.name === 'JsonWebTokenError'
+      ) {
+        this.devLogger.log(`Access Token is expired or doesn't exist`);
+        this.devLogger.log(`Using Refresh Token instead`);
         const refreshTokenPayload = await this.jwtService.verifyAsync(
           refreshToken
         );
-        if (!refreshTokenPayload) throw new UnauthorizedException();
+        if (!refreshTokenPayload) {
+          this.devLogger.log(`Invalid or expired Refresh Token`);
+          throw new UnauthorizedException();
+        }
         const newAccessToken = await lastValueFrom(
           this.authService.refresh(refreshToken)
         );
-        this.setNewTokensToResponse(context, newAccessToken);
+        this.setNewTokensToResponse(response, newAccessToken);
         request['user'] = await this.jwtService.verifyAsync(
           newAccessToken.access_token,
           { secret: jwtConstant.secret }
         );
         return true;
       } else {
+        this.devLogger.log(`Unexpected token error`);
         throw new UnauthorizedException();
       }
     }
@@ -71,10 +87,10 @@ export class AuthGuard implements CanActivate {
   }
 
   private setNewTokensToResponse(
-    context: ExecutionContext,
-    tokens: Omit<Jwt, 'refresh_token'>
+    response: Response,
+    tokenInfo: Omit<Jwt, 'refresh_token'>
   ) {
-    const response = context.switchToHttp().getResponse();
-    response.setHeader('Authorization', `Bearer ${tokens.access_token}`);
+    response.setHeader('New-Token', JSON.stringify(tokenInfo));
+    response.set('Cache-Control', 'no-store');
   }
 }

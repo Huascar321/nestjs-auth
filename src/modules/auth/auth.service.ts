@@ -14,13 +14,15 @@ import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { User } from '@prisma/client';
 import { parseTimeToSeconds } from '../../core/helper/parser.helper';
+import { CustomLoggerService } from '../../core/services/custom-logger/custom-logger.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
+    private configService: ConfigService,
+    private devLogger: CustomLoggerService,
     private jwtService: JwtService,
-    private configService: ConfigService
+    private userService: UserService
   ) {}
 
   signIn(
@@ -36,9 +38,11 @@ export class AuthService {
             if (!isMatch) throw new BadRequestException('Incorrect password');
             return this.generateTokens(username).pipe(
               map((tokens) => {
-                console.log('tokens: ', tokens);
                 this.setRefreshTokenCookie(res, tokens.refresh_token);
                 delete (tokens as any).refresh_token;
+                this.devLogger.log(
+                  `User logged in successfully, access token was sent`
+                );
                 return tokens;
               })
             );
@@ -111,11 +115,11 @@ export class AuthService {
     if (!refreshTokenTime) {
       throw new InternalServerErrorException('Refresh token time not defined');
     }
-    console.log('maxAge: ', parseTimeToSeconds(refreshTokenTime) * 1000);
     res.cookie('RefreshToken', refreshToken, {
       httpOnly: true,
       maxAge: parseTimeToSeconds(refreshTokenTime) * 1000,
       sameSite: 'strict'
     });
+    this.devLogger.log(`Refresh token was set in http only cookies`);
   }
 }

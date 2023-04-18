@@ -1,14 +1,15 @@
 import * as process from 'process';
 import { InternalServerErrorException } from '@nestjs/common';
+import { Environment } from '../../shared/models/environment.model';
 
 export function getEnvFilePath(): string {
   const nodeEnv = process.env.NODE_ENV;
   switch (nodeEnv) {
-    case 'DEVELOPMENT':
+    case Environment.DEVELOPMENT:
       return '.env.development';
-    case 'TESTING':
+    case Environment.TESTING:
       return '.env.testing';
-    case 'PRODUCTION':
+    case Environment.PRODUCTION:
       return '.env.production';
     default:
       throw new InternalServerErrorException(
@@ -17,8 +18,9 @@ export function getEnvFilePath(): string {
   }
 }
 export default () => ({
-  port: parseInt(process.env.PORT!, 10) || 3000,
   accessTokenTime: process.env.ACCESS_TOKEN_TIME,
-  refreshTokenTime: process.env.REFRESH_TOKEN_TIME,
-  frontendUrl: process.env.FRONTEND_URL
+  environment: process.env.NODE_ENV,
+  frontendUrl: process.env.FRONTEND_URL,
+  port: parseInt(process.env.PORT!, 10) || 3000,
+  refreshTokenTime: process.env.REFRESH_TOKEN_TIME
 });

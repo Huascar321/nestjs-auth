@@ -17,7 +17,9 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
   app.use(cookieParser());
   app.enableCors({
-    origin: [configService.get<string>('frontendUrl')!]
+    origin: [configService.get<string>('frontendUrl')!],
+    credentials: true,
+    exposedHeaders: ['New-Token']
   });
   await app.listen(port);
 }

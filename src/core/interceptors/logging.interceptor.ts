@@ -16,9 +16,11 @@ export class LoggingInterceptor implements NestInterceptor {
     const controllerPath = this.reflector.get<string>('path', controllerClass);
     const request = context.switchToHttp().getRequest();
     const method = request.method;
-    console.log('controllerPath: ', controllerPath);
-    console.log('method: ', method);
     const now = Date.now();
+    console.log('info: ', {
+      controllerPath,
+      method
+    });
     return next
       .handle()
       .pipe(tap(() => console.log(`After... ${Date.now() - now}ms`)));

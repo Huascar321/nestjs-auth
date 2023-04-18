@@ -13,6 +13,7 @@ import { SharedModule } from './shared/shared.module';
 import * as Joi from 'joi';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstant } from './shared/constants/jwt.constant';
+import { CoreModule } from './core/core.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { jwtConstant } from './shared/constants/jwt.constant';
     SharedModule,
     JwtModule.register({
       secret: jwtConstant.secret
-    })
+    }),
+    CoreModule
   ],
   controllers: [AppController],
   providers: [
@@ -56,9 +58,9 @@ export class AppModule {
   private readonly logger = new Logger(AppModule.name);
 
   constructor(private configService: ConfigService) {
-    const nodeEnv = this.configService.get<string>('NODE_ENV');
+    const environment = this.configService.get<string>('environment');
     this.logger.log(
-      `\x1b[34mApplication running in \x1b[96m${nodeEnv}\x1b[34m environment\x1b[0m`
+      `\x1b[34mApplication running in \x1b[96m${environment}\x1b[34m environment\x1b[0m`
     );
   }
 }
