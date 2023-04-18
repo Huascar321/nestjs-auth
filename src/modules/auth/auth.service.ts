@@ -3,7 +3,7 @@ import {
   Injectable,
   InternalServerErrorException
 } from '@nestjs/common';
-import { UserService } from '../user/user.service';
+import { UserService } from './user/user.service';
 import { forkJoin, map, Observable, switchMap } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';

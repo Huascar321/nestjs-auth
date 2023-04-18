@@ -45,8 +45,9 @@ export class AuthGuard implements CanActivate {
         error.name === 'TokenExpiredError' ||
         error.name === 'JsonWebTokenError'
       ) {
-        this.devLogger.log(`Access Token is expired or doesn't exist`);
-        this.devLogger.log(`Using Refresh Token instead`);
+        this.devLogger.log(
+          `Access Token is expired or doesn't exist, using Refresh Token instead`
+        );
         const refreshTokenPayload = await this.jwtService.verifyAsync(
           refreshToken
         );
@@ -92,5 +93,8 @@ export class AuthGuard implements CanActivate {
   ) {
     response.setHeader('New-Token', JSON.stringify(tokenInfo));
     response.set('Cache-Control', 'no-store');
+    this.devLogger.log(
+      'A new Access Token was generated and sent to the client'
+    );
   }
 }

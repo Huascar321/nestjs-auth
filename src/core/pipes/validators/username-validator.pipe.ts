@@ -5,7 +5,7 @@ import {
   Injectable,
   PipeTransform
 } from '@nestjs/common';
-import { UserService } from '../../../modules/user/user.service';
+import { UserService } from '../../../modules/auth/user/user.service';
 import { from, map, Observable } from 'rxjs';
 import { Prisma } from '@prisma/client';
 

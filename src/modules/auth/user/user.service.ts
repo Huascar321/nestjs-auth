@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { Observable } from 'rxjs';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
-import { PrismaService } from '../../core/services/prisma/prisma.service';
+import { PrismaService } from '../../../core/services/prisma/prisma.service';
 
 @Injectable()
 export class UserService {

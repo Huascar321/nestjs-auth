@@ -2,6 +2,7 @@
 import Joi from 'joi';
 import { IntFilterSchemaObject } from './IntFilter.schema';
 import { StringFilterSchemaObject } from './StringFilter.schema';
+import { UserRoleListRelationFilterSchemaObject } from './UserRoleListRelationFilter.schema';
 
 export const UserWhereInputSchemaObject = {
   AND: Joi.alternatives().try(
@@ -24,5 +25,6 @@ export const UserWhereInputSchemaObject = {
   password: Joi.alternatives().try(
     Joi.object().keys(StringFilterSchemaObject),
     Joi.string()
-  )
+  ),
+  userRoles: Joi.object().keys(UserRoleListRelationFilterSchemaObject)
 };

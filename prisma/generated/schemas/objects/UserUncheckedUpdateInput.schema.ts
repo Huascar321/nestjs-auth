@@ -2,6 +2,7 @@
 import Joi from 'joi';
 import { IntFieldUpdateOperationsInputSchemaObject } from './IntFieldUpdateOperationsInput.schema';
 import { StringFieldUpdateOperationsInputSchemaObject } from './StringFieldUpdateOperationsInput.schema';
+import { UserRoleUncheckedUpdateManyWithoutUserNestedInputSchemaObject } from './UserRoleUncheckedUpdateManyWithoutUserNestedInput.schema';
 
 export const UserUncheckedUpdateInputSchemaObject = {
   id: Joi.alternatives().try(
@@ -15,5 +16,8 @@ export const UserUncheckedUpdateInputSchemaObject = {
   password: Joi.alternatives().try(
     Joi.string(),
     Joi.object().keys(StringFieldUpdateOperationsInputSchemaObject)
+  ),
+  userRoles: Joi.object().keys(
+    UserRoleUncheckedUpdateManyWithoutUserNestedInputSchemaObject
   )
 };

@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CatModule } from './modules/cat/cat.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { UserModule } from './modules/user/user.module';
+import { UserModule } from './modules/auth/user/user.module';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
@@ -14,6 +14,7 @@ import * as Joi from 'joi';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstant } from './shared/constants/jwt.constant';
 import { CoreModule } from './core/core.module';
+import { PermissionService } from './modules/auth/permission/permission.service';
 
 @Module({
   imports: [
@@ -51,7 +52,8 @@ import { CoreModule } from './core/core.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor
-    }
+    },
+    PermissionService
   ]
 })
 export class AppModule {
