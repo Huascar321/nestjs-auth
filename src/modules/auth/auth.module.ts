@@ -6,6 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstant } from '../../shared/constants/jwt.constant';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RoleService } from './role/role.service';
+import { RoleController } from './role/role.controller';
 import configuration from '../../core/config/configuration';
 
 @Module({
@@ -23,7 +24,7 @@ import configuration from '../../core/config/configuration';
       inject: [ConfigService]
     })
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, RoleController],
   providers: [AuthService, RoleService],
   exports: [AuthService]
 })

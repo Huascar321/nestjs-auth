@@ -1,18 +1,17 @@
-
-import {ValidateNested} from 'class-validator'
-import {IntersectionType} from '@nestjs/swagger'
-import {User} from '../../user/entities/user.entity'
-import {Role} from '../../role/entities/role.entity'
+import { ValidateNested } from 'class-validator';
+import { IntersectionType } from '@nestjs/swagger';
+import { User } from '../../user';
+import { Role } from '../../role';
 
 export class UserRole {
-  id: number ;
-  userId: number ;
-  roleId: number ;
+  id: number;
+  userId: number;
+  roleId: number;
 }
 export class UserRoleRel {
   @ValidateNested()
-user: User ;
+  user: User;
   @ValidateNested()
-role: Role ;
+  role: Role;
 }
 export class UserRoleFull extends IntersectionType(UserRole, UserRoleRel) {}

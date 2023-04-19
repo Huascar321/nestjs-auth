@@ -14,7 +14,7 @@ import * as Joi from 'joi';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstant } from './shared/constants/jwt.constant';
 import { CoreModule } from './core/core.module';
-import { PermissionService } from './modules/auth/permission/permission.service';
+import { PermissionService } from './modules/auth/role/permission/permission.service';
 
 @Module({
   imports: [
