@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RoleService } from './role/role.service';
 import { RoleController } from './role/role.controller';
 import configuration from '../../core/config/configuration';
+import { PermissionService } from './role/permission/permission.service';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import configuration from '../../core/config/configuration';
     })
   ],
   controllers: [AuthController, RoleController],
-  providers: [AuthService, RoleService],
+  providers: [AuthService, RoleService, PermissionService],
   exports: [AuthService]
 })
 export class AuthModule {}

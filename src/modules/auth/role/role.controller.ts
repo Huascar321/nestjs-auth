@@ -24,17 +24,24 @@ import {
   UpdateRoleDto
 } from '../../../shared/models/role';
 import { Observable } from 'rxjs';
-import { Role, UserRole } from '@prisma/client';
+import { Role, RolePermission, UserRole } from '@prisma/client';
 import { RoleUsersReturn } from '../../../shared/models/role/return-types/role-users.model';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { User } from '../../../shared/models/user';
 import { RoleUniqueSchema } from '../../../shared/models/userRole/custom-schemas/role-unique/role-unique.schema';
 import { UserRole as UserRoleClass } from '../../../shared/models/userRole';
+import { Permission } from '../../../shared/models/permission';
+import { PermissionService } from './permission/permission.service';
+import { RolePermissionSchema } from '../../../shared/models/rolePermission/custom-schemas/role-permission/role-permission.schema';
+import { RolePermission as RolePermissionClass } from '../../../shared/models/rolePermission';
 
 @ApiTags('roles')
 @Controller('roles')
 export class RoleController {
-  constructor(private roleService: RoleService) {}
+  constructor(
+    private roleService: RoleService,
+    private permissionService: PermissionService
+  ) {}
 
   @Post()
   @UsePipes(new JoiValidatorPipe(RoleCreateSchema))
@@ -83,7 +90,7 @@ export class RoleController {
 
   @Post(':id/users/add')
   @UsePipes(new JoiValidatorPipe(RoleUniqueSchema))
-  @ApiOkResponse({ type: [UserRoleClass] })
+  @ApiOkResponse({ type: UserRoleClass })
   addRoleToUser(
     @Body() roleUnique: number | string,
     @Param(
@@ -107,5 +114,46 @@ export class RoleController {
     userId: number
   ): Observable<UserRole> {
     return this.roleService.removeRoleFromUser(roleUnique, userId);
+  }
+
+  @Get(':id/permissions')
+  @ApiOkResponse({ type: [Permission] })
+  getRolePermissions(
+    @Param(
+      'id',
+      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
+    )
+    roleId: number
+  ): Observable<(RolePermission & { permission: Permission })[]> {
+    return this.permissionService.getRolePermissions(roleId);
+  }
+
+  @Post(':id/permissions/add')
+  @UsePipes(new JoiValidatorPipe(RolePermissionSchema))
+  @ApiOkResponse({ type: RolePermissionClass })
+  addPermissionToRole(
+    @Body() permissionCode: number,
+    @Param(
+      'id',
+      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
+    )
+    roleId: number
+  ): Observable<RolePermission> {
+    return this.permissionService.addPermissionToRole(roleId, permissionCode);
+  }
+
+  @Delete(':id/permission/remove')
+  @UsePipes(new JoiValidatorPipe(RolePermissionSchema))
+  @HttpCode(HttpStatus.OK)
+  removePermissionFromRole(
+    @Body() permissionCode: number,
+    @Param(
+      'id',
+      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
+    )
+    roleId: number
+  ): void {
+    // should test because this method doesn't return anything
+    this.permissionService.removePermissionFromRole(roleId, permissionCode);
   }
 }

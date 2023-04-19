@@ -1,7 +1,7 @@
 import { ValidateNested } from 'class-validator';
 import { IntersectionType } from '@nestjs/swagger';
-import { User } from '../../user';
-import { Role } from '../../role';
+import { User } from '../../user/entities/user.entity';
+import { Role } from '../../role/entities/role.entity';
 
 export class UserRole {
   id: number;

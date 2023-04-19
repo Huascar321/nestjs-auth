@@ -14,7 +14,6 @@ import * as Joi from 'joi';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstant } from './shared/constants/jwt.constant';
 import { CoreModule } from './core/core.module';
-import { PermissionService } from './modules/auth/role/permission/permission.service';
 
 @Module({
   imports: [
@@ -52,8 +51,7 @@ import { PermissionService } from './modules/auth/role/permission/permission.ser
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor
-    },
-    PermissionService
+    }
   ]
 })
 export class AppModule {
