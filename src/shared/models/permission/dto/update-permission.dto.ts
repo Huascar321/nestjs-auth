@@ -1,5 +1,9 @@
+
+
+
+
 export class UpdatePermissionDto {
-  name?: string;
-  description?: string;
-  code?: number;
+  name?: string ;
+  description?: string ;
+  code?: number ;
 }

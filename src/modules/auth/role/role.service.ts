@@ -1,14 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../core/services/prisma/prisma.service';
 import { CreateRoleDto, UpdateRoleDto } from '../../../shared/models/role';
-import { Observable, of, switchMap } from 'rxjs';
-import { Role, UserRole } from '@prisma/client';
+import { map, Observable, of, switchMap } from 'rxjs';
+import { Prisma, Role, UserRole } from '@prisma/client';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { RoleUsersReturn } from '../../../shared/models/role/return-types/role-users.model';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class RoleService {
-  constructor(private db: PrismaService) {}
+  constructor(private db: PrismaService, private userService: UserService) {}
 
   findByName(name: string): Observable<Role | null> {
     return fromPromise(
@@ -48,17 +49,41 @@ export class RoleService {
     );
   }
 
+  // TODO: Insert these roles in the JWT
+  getUserRoles(username: string): Observable<
+    Array<
+      Prisma.UserRoleGetPayload<{
+        include: { role: boolean };
+        where: { userId: number };
+      }>
+    >
+  > {
+    return this.userService.findOne({ username }).pipe(
+      switchMap((foundUser) => {
+        if (!foundUser)
+          throw new BadRequestException(`This user doesn't exist`);
+        return fromPromise(
+          this.db.userRole.findMany({
+            where: {
+              userId: foundUser.id
+            },
+            include: {
+              role: true
+            }
+          })
+        );
+      })
+    );
+  }
+
   create(data: CreateRoleDto): Observable<Role> {
     return this.findByName(data.name).pipe(
       switchMap((isDuplicated) => {
-        if (!isDuplicated)
+        if (!!isDuplicated)
           throw new BadRequestException('This name already belongs to a role');
         return fromPromise(
           this.db.role.create({
-            data: {
-              name: data.name,
-              description: data.description
-            }
+            data
           })
         );
       })
@@ -82,7 +107,7 @@ export class RoleService {
     );
   }
 
-  delete(id: number): Observable<Role> {
+  delete(id: number): Observable<null> {
     return this.findById(id).pipe(
       switchMap((foundRole) => {
         if (!foundRole)
@@ -93,15 +118,12 @@ export class RoleService {
               id
             }
           })
-        );
+        ).pipe(map(() => null));
       })
     );
   }
 
-  addRoleToUser(
-    roleUnique: number | string,
-    userId: number
-  ): Observable<UserRole> {
+  addRoleToUser(roleUnique: number, userId: number): Observable<UserRole> {
     return this.isRoleAvailableByUnique(roleUnique).pipe(
       switchMap((foundRoleId) => {
         return this.hasUserThisRole(userId, foundRoleId).pipe(
@@ -127,20 +149,20 @@ export class RoleService {
   removeRoleFromUser(
     roleUnique: number | string,
     userId: number
-  ): Observable<UserRole> {
+  ): Observable<null> {
     return this.isRoleAvailableByUnique(roleUnique).pipe(
       switchMap((foundRoleId) => {
         return this.hasUserThisRole(userId, foundRoleId).pipe(
           switchMap((foundUserRole) => {
             if (!foundUserRole)
-              throw new BadRequestException(`This role doesn't exist`);
+              throw new BadRequestException(`This role or user doesn't exist`);
             return fromPromise(
               this.db.userRole.delete({
                 where: {
                   id: foundUserRole.id
                 }
               })
-            );
+            ).pipe(map(() => null));
           })
         );
       })

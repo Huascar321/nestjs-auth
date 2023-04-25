@@ -89,6 +89,7 @@ export class AuthService {
     );
   }
 
+  // TODO: Insert roles in the JWT
   private generateTokens(username: string): Observable<Jwt> {
     return forkJoin([
       fromPromise(this.jwtService.signAsync({ username })),

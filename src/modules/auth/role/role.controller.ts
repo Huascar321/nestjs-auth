@@ -5,16 +5,15 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotAcceptableException,
   Param,
   ParseIntPipe,
   Post,
-  Put,
-  UsePipes
+  Put
 } from '@nestjs/common';
 import { RoleService } from './role.service';
 import {
   RoleCreateSchema,
-  RoleDeleteOneSchema,
   RoleUpdateOneSchema
 } from '../../../../prisma/generated/schemas';
 import { JoiValidatorPipe } from '../../../core/pipes/validators/joi-validator.pipe';
@@ -28,11 +27,15 @@ import { Role, RolePermission, UserRole } from '@prisma/client';
 import { RoleUsersReturn } from '../../../shared/models/role/return-types/role-users.model';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { User } from '../../../shared/models/user';
-import { RoleUniqueSchema } from '../../../shared/models/userRole/custom-schemas/role-unique/role-unique.schema';
-import { UserRole as UserRoleClass } from '../../../shared/models/userRole';
-import { Permission } from '../../../shared/models/permission';
+import {
+  CreateUserRoleDto,
+  UserRole as UserRoleClass
+} from '../../../shared/models/userRole';
+import {
+  CreatePermissionDto,
+  Permission
+} from '../../../shared/models/permission';
 import { PermissionService } from './permission/permission.service';
-import { RolePermissionSchema } from '../../../shared/models/rolePermission/custom-schemas/role-permission/role-permission.schema';
 import { RolePermission as RolePermissionClass } from '../../../shared/models/rolePermission';
 
 @ApiTags('roles')
@@ -44,16 +47,16 @@ export class RoleController {
   ) {}
 
   @Post()
-  @UsePipes(new JoiValidatorPipe(RoleCreateSchema))
-  create(@Body() createRoleDto: CreateRoleDto): Observable<Role> {
+  create(
+    @Body(new JoiValidatorPipe(RoleCreateSchema)) createRoleDto: CreateRoleDto
+  ): Observable<Role> {
     return this.roleService.create(createRoleDto);
   }
 
   @Put(':id')
-  @UsePipes(new JoiValidatorPipe(RoleUpdateOneSchema))
   @ApiOkResponse({ type: [RoleClass] })
   update(
-    @Body() data: UpdateRoleDto,
+    @Body(new JoiValidatorPipe(RoleUpdateOneSchema)) data: UpdateRoleDto,
     @Param(
       'id',
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
@@ -63,8 +66,7 @@ export class RoleController {
     return this.roleService.update(id, data);
   }
 
-  @Delete('id')
-  @UsePipes(new JoiValidatorPipe(RoleDeleteOneSchema))
+  @Delete(':id')
   @ApiOkResponse({ type: [RoleClass] })
   delete(
     @Param(
@@ -72,7 +74,7 @@ export class RoleController {
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
     )
     id: number
-  ): Observable<Role> {
+  ): Observable<null> {
     return this.roleService.delete(id);
   }
 
@@ -89,31 +91,39 @@ export class RoleController {
   }
 
   @Post(':id/users/add')
-  @UsePipes(new JoiValidatorPipe(RoleUniqueSchema))
   @ApiOkResponse({ type: UserRoleClass })
   addRoleToUser(
-    @Body() roleUnique: number | string,
+    @Body('data') data: Pick<CreateUserRoleDto, 'userId'>,
     @Param(
       'id',
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
     )
-    userId: number
+    roleUnique: number
   ): Observable<UserRole> {
-    return this.roleService.addRoleToUser(roleUnique, userId);
+    if (data) {
+      if (!data.userId)
+        throw new NotAcceptableException(`userId not found in request body`);
+      return this.roleService.addRoleToUser(roleUnique, data.userId);
+    }
+    throw new NotAcceptableException(`Request body not found`);
   }
 
   @Delete(':id/users/remove')
-  @UsePipes(new JoiValidatorPipe(RoleUniqueSchema))
   @HttpCode(HttpStatus.OK)
   removeRoleFromUser(
-    @Body() roleUnique: number | string,
+    @Body('data') data: Pick<CreateUserRoleDto, 'userId'>,
     @Param(
       'id',
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
     )
-    userId: number
-  ): Observable<UserRole> {
-    return this.roleService.removeRoleFromUser(roleUnique, userId);
+    roleUnique: number
+  ): Observable<null> {
+    if (data) {
+      if (!data.userId)
+        throw new NotAcceptableException(`userId not found in request body`);
+      return this.roleService.removeRoleFromUser(roleUnique, data.userId);
+    }
+    throw new NotAcceptableException(`Request body not found`);
   }
 
   @Get(':id/permissions')
@@ -129,31 +139,42 @@ export class RoleController {
   }
 
   @Post(':id/permissions/add')
-  @UsePipes(new JoiValidatorPipe(RolePermissionSchema))
   @ApiOkResponse({ type: RolePermissionClass })
   addPermissionToRole(
-    @Body() permissionCode: number,
+    @Body('data') data: Pick<CreatePermissionDto, 'code'>,
     @Param(
       'id',
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
     )
     roleId: number
   ): Observable<RolePermission> {
-    return this.permissionService.addPermissionToRole(roleId, permissionCode);
+    if (data) {
+      if (!data.code)
+        throw new NotAcceptableException(
+          `Permission code not found in request body`
+        );
+      return this.permissionService.addPermissionToRole(roleId, data.code);
+    }
+    throw new NotAcceptableException(`Request body not found`);
   }
 
-  @Delete(':id/permission/remove')
-  @UsePipes(new JoiValidatorPipe(RolePermissionSchema))
+  @Delete(':id/permissions/remove')
   @HttpCode(HttpStatus.OK)
   removePermissionFromRole(
-    @Body() permissionCode: number,
+    @Body('data') data: Pick<CreatePermissionDto, 'code'>,
     @Param(
       'id',
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
     )
     roleId: number
-  ): void {
-    // should test because this method doesn't return anything
-    this.permissionService.removePermissionFromRole(roleId, permissionCode);
+  ): Observable<null> {
+    if (data) {
+      if (!data.code)
+        throw new NotAcceptableException(
+          `Permission code not found in request body`
+        );
+      return this.permissionService.removePermissionFromRole(roleId, data.code);
+    }
+    throw new NotAcceptableException(`Request body not found`);
   }
 }

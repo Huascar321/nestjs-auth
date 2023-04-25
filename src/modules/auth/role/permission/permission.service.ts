@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../../../../core/services/prisma/prisma.service';
-import { filter, Observable, switchMap, take } from 'rxjs';
+import { filter, map, Observable, switchMap, take } from 'rxjs';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { Permission, RolePermission } from '@prisma/client';
 import { PermissionCodeReturn } from '../../../../shared/models/permission/return-types/permission-code.model';
@@ -88,7 +88,10 @@ export class PermissionService {
     );
   }
 
-  removePermissionFromRole(roleId: number, permissionCode: number): void {
+  removePermissionFromRole(
+    roleId: number,
+    permissionCode: number
+  ): Observable<null> {
     const permission$ = this.findPermissionByCode(permissionCode);
     const found$ = permission$.pipe(
       filter((permission) => !!permission),
@@ -101,17 +104,16 @@ export class PermissionService {
       take(1)
     );
 
-    found$.subscribe({
-      next: (found) => {
+    return found$.pipe(
+      switchMap((found) => {
         if (!found)
           throw new InternalServerErrorException(
-            'This permission was already removed from the role'
+            `This permission doesn't exist in this role`
           );
-        this.db.rolePermission.delete({ where: { id: found?.id } });
-      },
-      error: (error) => {
-        throw new InternalServerErrorException(error.message);
-      }
-    });
+        return fromPromise(
+          this.db.rolePermission.delete({ where: { id: found.id } })
+        ).pipe(map(() => null));
+      })
+    );
   }
 }
