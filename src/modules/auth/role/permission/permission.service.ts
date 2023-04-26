@@ -1,12 +1,21 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../../../../core/services/prisma/prisma.service';
-import { filter, map, Observable, switchMap, take } from 'rxjs';
+import {
+  BehaviorSubject,
+  filter,
+  map,
+  Observable,
+  switchMap,
+  take
+} from 'rxjs';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { Permission, RolePermission } from '@prisma/client';
 import { PermissionCodeReturn } from '../../../../shared/models/permission/return-types/permission-code.model';
 
 @Injectable()
 export class PermissionService {
+  userPermissions$ = new BehaviorSubject<number[] | null>(null);
+
   constructor(private db: PrismaService) {}
 
   findRolePermissions(roleId: number): Observable<PermissionCodeReturn> {

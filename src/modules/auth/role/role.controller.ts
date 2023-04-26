@@ -46,6 +46,11 @@ export class RoleController {
     private permissionService: PermissionService
   ) {}
 
+  @Get()
+  findAllRoles(): Observable<Role[]> {
+    return this.roleService.findAllRoles();
+  }
+
   @Post()
   create(
     @Body(new JoiValidatorPipe(RoleCreateSchema)) createRoleDto: CreateRoleDto

@@ -1,15 +1,24 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../core/services/prisma/prisma.service';
 import { CreateRoleDto, UpdateRoleDto } from '../../../shared/models/role';
-import { map, Observable, of, switchMap } from 'rxjs';
+import { map, Observable, of, switchMap, tap } from 'rxjs';
 import { Prisma, Role, UserRole } from '@prisma/client';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { RoleUsersReturn } from '../../../shared/models/role/return-types/role-users.model';
 import { UserService } from '../user/user.service';
+import { PermissionService } from './permission/permission.service';
 
 @Injectable()
 export class RoleService {
-  constructor(private db: PrismaService, private userService: UserService) {}
+  constructor(
+    private db: PrismaService,
+    private userService: UserService,
+    private permissionService: PermissionService
+  ) {}
+
+  findAllRoles(): Observable<Role[]> {
+    return fromPromise(this.db.role.findMany());
+  }
 
   findByName(name: string): Observable<Role | null> {
     return fromPromise(
@@ -53,7 +62,15 @@ export class RoleService {
   getUserRoles(username: string): Observable<
     Array<
       Prisma.UserRoleGetPayload<{
-        include: { role: boolean };
+        include: {
+          role: {
+            select: {
+              rolePermission: { select: { permission: boolean } };
+              name: boolean;
+              description: boolean;
+            };
+          };
+        };
         where: { userId: number };
       }>
     >
@@ -68,8 +85,29 @@ export class RoleService {
               userId: foundUser.id
             },
             include: {
-              role: true
+              role: {
+                select: {
+                  name: true,
+                  description: true,
+                  rolePermission: {
+                    select: {
+                      permission: true
+                    }
+                  }
+                }
+              }
             }
+          })
+        ).pipe(
+          // TODO: Verificar la lógica de este TAP
+          tap((userRolesArray) => {
+            const permissionList: number[] = [];
+            userRolesArray.forEach((userRole) => {
+              userRole.role.rolePermission.forEach((rolePermission) => {
+                permissionList.push(rolePermission.permission.code);
+              });
+            });
+            this.permissionService.userPermissions$.next(permissionList);
           })
         );
       })

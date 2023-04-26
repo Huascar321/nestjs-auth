@@ -15,6 +15,7 @@ import { Response } from 'express';
 import { User } from '@prisma/client';
 import { parseTimeToSeconds } from '../../core/helper/parser.helper';
 import { CustomLoggerService } from '../../core/services/custom-logger/custom-logger.service';
+import { RoleService } from './role/role.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,7 @@ export class AuthService {
     private configService: ConfigService,
     private devLogger: CustomLoggerService,
     private jwtService: JwtService,
+    private roleService: RoleService,
     private userService: UserService
   ) {}
 
@@ -91,23 +93,34 @@ export class AuthService {
 
   // TODO: Insert roles in the JWT
   private generateTokens(username: string): Observable<Jwt> {
-    return forkJoin([
-      fromPromise(this.jwtService.signAsync({ username })),
-      fromPromise(
-        this.jwtService.signAsync(
-          { username, tokenId: uuid() },
-          {
-            expiresIn: this.configService.get<string>('refreshTokenTime')
-          }
-        )
-      )
-    ]).pipe(
-      map(([accessToken, refreshToken]) => ({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        access_token_expires_in:
-          this.configService.get<string>('accessTokenTime')!
-      }))
+    return this.roleService.getUserRoles(username).pipe(
+      switchMap((userRolesArray) => {
+        const permissionList: number[] = [];
+        userRolesArray.forEach((userRole) => {
+          userRole.role.rolePermission.forEach((rolePermission) => {
+            permissionList.push(rolePermission.permission.code);
+          });
+        });
+        console.log('permissionList: ', permissionList);
+        return forkJoin([
+          fromPromise(this.jwtService.signAsync({ username, permissionList })),
+          fromPromise(
+            this.jwtService.signAsync(
+              { username, tokenId: uuid() },
+              {
+                expiresIn: this.configService.get<string>('refreshTokenTime')
+              }
+            )
+          )
+        ]).pipe(
+          map(([accessToken, refreshToken]) => ({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            access_token_expires_in:
+              this.configService.get<string>('accessTokenTime')!
+          }))
+        );
+      })
     );
   }
 
