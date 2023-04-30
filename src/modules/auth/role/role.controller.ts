@@ -25,18 +25,20 @@ import {
 import { Observable } from 'rxjs';
 import { Role, RolePermission, UserRole } from '@prisma/client';
 import { RoleUsersReturn } from '../../../shared/models/role/return-types/role-users.model';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { User } from '../../../shared/models/user';
-import {
-  CreateUserRoleDto,
-  UserRole as UserRoleClass
-} from '../../../shared/models/userRole';
-import {
-  CreatePermissionDto,
-  Permission
-} from '../../../shared/models/permission';
+import { UserRole as UserRoleClass } from '../../../shared/models/userRole';
+import { Permission } from '../../../shared/models/permission';
 import { PermissionService } from './permission/permission.service';
 import { RolePermission as RolePermissionClass } from '../../../shared/models/rolePermission';
+import {
+  AddPermissionDto,
+  RemovePermissionDto
+} from '../../../shared/models/permission/dto/add-permission.dto';
+import {
+  AddUserDto,
+  RemoveUserDto
+} from '../../../shared/models/user/dto/add-user.dto';
 
 @ApiTags('roles')
 @Controller('roles')
@@ -47,6 +49,7 @@ export class RoleController {
   ) {}
 
   @Get()
+  @ApiOkResponse({ type: [RoleClass] })
   findAllRoles(): Observable<Role[]> {
     return this.roleService.findAllRoles();
   }
@@ -97,8 +100,9 @@ export class RoleController {
 
   @Post(':id/users/add')
   @ApiOkResponse({ type: UserRoleClass })
+  @ApiBody({ type: AddUserDto })
   addRoleToUser(
-    @Body('data') data: Pick<CreateUserRoleDto, 'userId'>,
+    @Body('data') data: AddUserDto,
     @Param(
       'id',
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
@@ -115,8 +119,9 @@ export class RoleController {
 
   @Delete(':id/users/remove')
   @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: RemoveUserDto })
   removeRoleFromUser(
-    @Body('data') data: Pick<CreateUserRoleDto, 'userId'>,
+    @Body('data') data: RemoveUserDto,
     @Param(
       'id',
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
@@ -145,8 +150,9 @@ export class RoleController {
 
   @Post(':id/permissions/add')
   @ApiOkResponse({ type: RolePermissionClass })
+  @ApiBody({ type: AddPermissionDto })
   addPermissionToRole(
-    @Body('data') data: Pick<CreatePermissionDto, 'code'>,
+    @Body('data') data: AddPermissionDto,
     @Param(
       'id',
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })
@@ -165,8 +171,9 @@ export class RoleController {
 
   @Delete(':id/permissions/remove')
   @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: RemovePermissionDto })
   removePermissionFromRole(
-    @Body('data') data: Pick<CreatePermissionDto, 'code'>,
+    @Body('data') data: RemovePermissionDto,
     @Param(
       'id',
       new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE })

@@ -8,6 +8,18 @@ import { PrismaService } from '../../../core/services/prisma/prisma.service';
 export class UserService {
   constructor(private db: PrismaService) {}
 
+  findAllUsers(): Observable<Omit<User, 'password'>[]> {
+    return fromPromise(
+      this.db.user.findMany({
+        select: {
+          id: true,
+          username: true,
+          password: false
+        }
+      })
+    ) as Observable<Omit<User, 'password'>[]>;
+  }
+
   findOne(
     whereUniqueInput: Prisma.UserWhereUniqueInput
   ): Observable<User | null> {

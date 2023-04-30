@@ -1,9 +1,5 @@
-
-
-
-
 export class UpdateCatDto {
-  name?: string ;
-  age?: number ;
-  breed?: string ;
+  name?: string;
+  age?: number;
+  breed?: string;
 }
