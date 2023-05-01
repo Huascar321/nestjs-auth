@@ -14,6 +14,7 @@ import { JoiValidatorPipe } from '../../core/pipes/validators/joi-validator.pipe
 import { CatCreateSchema } from '../../../prisma/generated/schemas';
 import { Cat, CreateCatDto } from '../../shared/models/cat';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { RequirePermission } from '../../core/decorators/require-permission.decorator';
 
 @ApiTags('cats')
 @Controller('cats')
@@ -26,6 +27,7 @@ export class CatController {
     this.catService.create(createCatDto);
   }
 
+  @RequirePermission(2000)
   @Get()
   @ApiOkResponse({ type: [Cat] })
   findAll(): Observable<Cat[]> {

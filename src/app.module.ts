@@ -14,6 +14,7 @@ import * as Joi from 'joi';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstant } from './shared/constants/jwt.constant';
 import { CoreModule } from './core/core.module';
+import { PermissionGuard } from './core/guards/permission.guard';
 
 @Module({
   imports: [
@@ -47,6 +48,10 @@ import { CoreModule } from './core/core.module';
     {
       provide: APP_GUARD,
       useClass: AuthGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionGuard
     },
     {
       provide: APP_INTERCEPTOR,
