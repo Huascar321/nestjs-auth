@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstant } from '../../shared/constants/jwt.constant';
 import { Reflector } from '@nestjs/core';
@@ -13,6 +13,10 @@ import { AuthService } from '../../modules/auth/auth.service';
 import { Jwt } from '../../shared/models/auth/jwt.model';
 import { lastValueFrom } from 'rxjs';
 import { CustomLoggerService } from '../services/custom-logger/custom-logger.service';
+import {
+  extractAccessTokenFromHeader,
+  extractRefreshTokenFromCookie
+} from '../helper/extractor.helper';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -27,8 +31,8 @@ export class AuthGuard implements CanActivate {
     if (this.isPublic(context)) return true;
     const response = context.switchToHttp().getResponse();
     const request = context.switchToHttp().getRequest();
-    const accessToken = this.extractAccessTokenFromHeader(request);
-    const refreshToken = this.extractRefreshTokenFromCookie(request);
+    const accessToken = extractAccessTokenFromHeader(request);
+    const refreshToken = extractRefreshTokenFromCookie(request);
     if (!refreshToken) {
       this.devLogger.log(`Invalid or expired Refresh Token`);
       throw new UnauthorizedException();
@@ -76,15 +80,6 @@ export class AuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass()
     ]);
-  }
-
-  private extractAccessTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
-  }
-
-  private extractRefreshTokenFromCookie(request: Request): string | undefined {
-    return request.cookies['RefreshToken'];
   }
 
   private setNewTokensToResponse(

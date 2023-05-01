@@ -58,7 +58,6 @@ export class RoleService {
     );
   }
 
-  // TODO: Insert these roles in the JWT
   getUserRoles(username: string): Observable<
     Array<
       Prisma.UserRoleGetPayload<{
@@ -99,7 +98,6 @@ export class RoleService {
             }
           })
         ).pipe(
-          // TODO: Verificar la lógica de este TAP
           tap((userRolesArray) => {
             const permissionList: number[] = [];
             userRolesArray.forEach((userRole) => {
